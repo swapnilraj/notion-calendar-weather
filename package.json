@@ -1,0 +1,28 @@
+{
+  "name": "notion-calendar-weather",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Weather module injected into a patched copy of the Notion Calendar desktop app",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "build:debug": "node scripts/build.mjs --debug",
+    "build:bundles": "node scripts/build.mjs --bundles-only",
+    "test": "node --test \"test/*.test.ts\"",
+    "typecheck": "tsc --noEmit",
+    "weather": "node scripts/weather-cli.ts",
+    "dev:launch": "node scripts/dev-launch.mjs",
+    "dev:launch:debug": "node scripts/dev-launch.mjs --port 9333"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "devDependencies": {
+    "@electron/asar": "^4.3.2",
+    "@types/node": "^26.6.6",
+    "electron": "^44.11.3",
+    "esbuild": "^0.28.2",
+    "typescript": "^7.0.2"
+  },
+  "license": "MIT"
+}
