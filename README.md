@@ -23,11 +23,19 @@ changes hour to hour with three signals:
 - **Cold:** an icy cast when it's cold, a warm one when it's warm.
 - **Rain:** fine streaks that appear while it rains. Denser streaks mean heavier rain.
 
+<p align="center">
+  <img src="screenshots/04-rain-closeup.png" alt="A dry day next to a rainy evening, shown as fine streaks" width="420"><br>
+  <sub>A dry day next to a rainy evening. The streaks fade in and out with the rain, hour by hour.</sub>
+</p>
+
 **The day header gives the summary:** an icon and the high and low beside each date, plus the chance of
 rain on wet days.
 
-**Hover for the exact hour:** pointing at any empty slot shows `18:00 · Dark · Light rain 1.9 mm · Cool 11°`.
-These are the same words as the three signals, so you learn to read the background without a legend.
+![Day headers with an icon, high and low, and rain chance on wet days](screenshots/05-header-closeup.png)
+
+**Hover for the exact hour:** pointing at any empty slot shows `18:00 · Dark · Light rain 1.9 mm · Cool 11°`
+(bottom right of the screenshot at the top). These are the same words as the three signals, so you learn to
+read the background without a legend.
 
 | Today | With weather |
 |---|---|
@@ -44,10 +52,6 @@ These are the same words as the three signals, so you learn to read the backgrou
 4. **Honest data.** Rain is drawn in the hour it actually falls, its density follows the measured amount,
    and a sunny day never shows a rain chance it doesn't deserve.
 5. **Zero setup.** The location follows the calendar's time zone, and you can change it whenever you like.
-
-<p>
-  <img src="screenshots/05-header-closeup.png" alt="Day headers with weather" width="100%">
-</p>
 
 ## Try the prototype
 
