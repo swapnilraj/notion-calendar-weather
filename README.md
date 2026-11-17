@@ -60,11 +60,14 @@ installed Notion Calendar and never modifies the original. No Notion code is inc
 
 ```sh
 npm install
-npm run build   # creates ~/Applications/Notion Calendar Weather.app
+npm run app:update   # downloads + verifies the latest Notion Calendar, builds ~/Applications/Notion Calendar Weather.app
 open ~/Applications/Notion\ Calendar\ Weather.app
 ```
 
-Requires macOS, Notion Calendar installed in `/Applications`, and Node 24. Your calendar data never leaves
+Run `npm run app:update` again, or schedule it (see [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md#updates)),
+and new Notion releases arrive through the app's usual "Restart and upgrade" prompt.
+
+Requires macOS and Node 24 (no need to have Notion Calendar installed). Your calendar data never leaves
 the app; the only outside request is the forecast for your location. See
 [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) for how it works.
 

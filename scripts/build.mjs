@@ -38,7 +38,15 @@ const MARK = '/*NCW*/';
 
 const step = (msg) => console.log(`\n▶ ${msg}`);
 const run = (cmd, argv, opts = {}) => execFileSync(cmd, argv, { stdio: 'inherit', ...opts });
-const plist = (app, cmd) => execFileSync('/usr/libexec/PlistBuddy', ['-c', cmd, path.join(app, 'Contents/Info.plist')], { encoding: 'utf8' }).trim();
+function weatherRev() {
+  try {
+    const git = (...a) => execFileSync('git', ['-C', root, ...a], { encoding: 'utf8' }).trim();
+    return git('rev-parse', '--short', 'HEAD') + (git('status', '--porcelain', '--untracked-files=no') ? '-dirty' : '');
+  } catch {
+    return 'unknown';
+  }
+}
+const plist = (app, cmd) =>execFileSync('/usr/libexec/PlistBuddy', ['-c', cmd, path.join(app, 'Contents/Info.plist')], { encoding: 'utf8' }).trim();
 
 // ---------------------------------------------------------------- 1. bundle weather code
 const dist = path.join(root, 'dist');
@@ -127,8 +135,15 @@ try {
   plist(out, `Add :CFBundleDisplayName string ${APP_NAME}`);
 }
 // An ad-hoc-signed copy can't apply Notion's signed updates, and an update would overwrite the patch.
+// Updates come from scripts/update.mjs instead, which stages a rebuilt copy for the in-app prompt.
 fs.rmSync(path.join(out, 'Contents/Resources/app-update.yml'), { force: true });
 console.log(`  asar hash ${hash}`);
+
+// Build identity, read by the in-app updater (src/weather/updater.ts) and scripts/update.mjs.
+const buildInfo = { notionVersion: pkg.version, weatherRev: weatherRev(), builtAt: new Date().toISOString() };
+buildInfo.buildId = `${buildInfo.notionVersion}+${buildInfo.weatherRev}@${buildInfo.builtAt}`;
+fs.writeFileSync(path.join(out, 'Contents/Resources/ncw-build.json'), JSON.stringify(buildInfo, null, 2) + '\n');
+console.log(`  build ${buildInfo.buildId}`);
 
 // ---------------------------------------------------------------- 6. sign
 step('Re-signing (ad hoc)');

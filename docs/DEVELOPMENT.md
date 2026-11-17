@@ -12,6 +12,7 @@ src/weather/            backend: Open-Meteo client (hourly, UTC), cache, setting
 src/ui/                 page layer: feel gradient, rain/snow texture, day-header chips, hover readout
 src/entry/              tiny entrypoints appended to the app's main + preload bundles
 scripts/build.mjs       copy app -> patch asar -> fix integrity hash -> re-sign ad hoc
+scripts/update.mjs      fetch + verify the latest Notion release, rebuild, stage or install (see Updates)
 scripts/weather-cli.ts  exercise the backend against the live API
 scripts/cdp.mjs         DevTools helper for `build:debug` copies (inspect DOM, screenshot, click)
 scripts/dev-launch.mjs  launch the copy (optionally with the debug port) and make it full screen via yabai
@@ -60,8 +61,45 @@ build:debug` adds an env-gated DevTools port; launch that copy with `npm run dev
 then use `node scripts/cdp.mjs shot out.png | eval '<js>' | click x,y`. The normal `npm run build` contains
 no debug hook.
 
+## Updates
+
+Notion's own updater can't update the copy (an update would drop the patch), so updates go through
+`scripts/update.mjs` and a small in-app bridge:
+
+1. `node scripts/update.mjs` reads Notion's public release feed (`latest-mac.yml`, the same one the
+   official app checks every 15 minutes). If there's a newer release, or this repo's commit changed:
+   - it downloads the zip and verifies it: the SHA-512 from the feed, the Apple code signature,
+     Notion's team ID `LBQJ96FQ8D`, and Gatekeeper;
+   - it builds a patched copy into `~/Library/Application Support/Notion Calendar Weather/update/staged/`.
+2. If the copy isn't running, the update installs straight away. If it is running, the copy notices the
+   staged build and shows **Notion's own "New version available → Restart and upgrade" card**
+   (`src/weather/updater.ts` feeds the staged build to Notion's updater messages and replaces its install
+   handler).
+3. Clicking it quits the copy. A detached helper verifies the staged app, swaps it into place, keeps the
+   previous build in `update/previous/`, and relaunches. You stay signed in.
+
+### Scheduling it
+
+The steps live in [AGENTS.md](../AGENTS.md) ("Runbook"), so any agent can run them: Codex, Claude Code,
+or a plain `node scripts/update.mjs`. To run it on a schedule with a **Codex app automation**:
+
+1. Open the Codex app and add this folder as a project if it isn't one already.
+2. Go to Automations → New automation:
+   - **Project:** this repo, running locally (not cloud). It needs your Mac's `~/Applications`.
+   - **Schedule:** daily at 09:00 and 21:00. Desktop releases ship every few weeks, so twice a day is plenty.
+   - **Notify:** failed runs only.
+   - **Permissions:** network access plus writes outside the workspace (`~/Applications`,
+     `~/Library/Application Support`). Without them the run reports a network error.
+   - **Prompt:**
+
+     > Follow the "Runbook: keep the app on the latest Notion Calendar release" section in AGENTS.md.
+     > Run `node scripts/update.mjs` and act on its exit code exactly as the table says. Reply with one
+     > line: the RESULT action and version, or the error and what you did about it.
+
+For Claude Code, the same prompt works as a scheduled task or `/loop`. `CLAUDE.md` imports `AGENTS.md`.
+
 ## Notes
 
 - The copy has its own profile (`~/Library/Application Support/Notion Calendar Weather`), so you sign in again.
-- Auto-update is disabled in the copy (an update would overwrite the patch). Re-run the build instead.
+- Notion's built-in updater is disconnected in the copy. See [Updates](#updates).
 - The copy still registers the app's deep-link protocol, which may take it over from the original.

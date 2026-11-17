@@ -12,7 +12,9 @@
     "typecheck": "tsc --noEmit",
     "weather": "node scripts/weather-cli.ts",
     "dev:launch": "node scripts/dev-launch.mjs",
-    "dev:launch:debug": "node scripts/dev-launch.mjs --port 9333"
+    "dev:launch:debug": "node scripts/dev-launch.mjs --port 9333",
+    "app:check": "node scripts/update.mjs --check",
+    "app:update": "node scripts/update.mjs"
   },
   "engines": {
     "node": ">=24"
