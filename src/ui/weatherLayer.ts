@@ -20,7 +20,9 @@ const HOUR_S = 3600;
 /** Wire real forecast data into the gradient, day-header chips and hover readout. Returns a stop function. */
 export function startWeatherUi(opts: WeatherUiOptions): () => void {
   const { api } = opts;
-  const tz = opts.timeZone ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
+  // Re-read, not cached: the system zone changes when travelling, and the app may never be restarted.
+  const currentTz = () => opts.timeZone ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
+  let tz = currentTz();
   let hours = new Map<number, HourlyForecast>();
   let summaries = new Map<string, DaySummary>();
   let units: Units = 'metric';
@@ -49,6 +51,7 @@ export function startWeatherUi(opts: WeatherUiOptions): () => void {
 
   async function load(): Promise<void> {
     let delay = refreshMs;
+    tz = currentTz();
     try {
       let settings = await api.getSettings();
       // Derive the location from the calendar's time zone unless the user picked one.
@@ -67,21 +70,25 @@ export function startWeatherUi(opts: WeatherUiOptions): () => void {
     if (!stopped) timer = setTimeout(load, delay);
   }
 
-  const onVisible = () => {
-    if (document.visibilityState === 'visible') {
-      clearTimeout(timer);
-      void load();
-    }
+  const reload = () => {
+    clearTimeout(timer);
+    void load();
   };
-
+  const onVisible = () => {
+    if (document.visibilityState === 'visible') reload();
+  };
+  // No dedicated time-zone timer: every refresh (15 min), window focus and tab-visible re-reads the zone,
+  // which catches landing somewhere new without polling.
   gradients.start();
   hover.start();
   document.addEventListener('visibilitychange', onVisible);
+  window.addEventListener('focus', onVisible);
   void load();
 
   return () => {
     stopped = true;
     clearTimeout(timer);
+    window.removeEventListener('focus', onVisible);
     document.removeEventListener('visibilitychange', onVisible);
     gradients.stop();
     hover.stop();
