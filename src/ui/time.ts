@@ -23,5 +23,18 @@ export function zonedToEpochMs(date: string, hour: number, tz: string): number {
   return guess - tzOffsetMs(first, tz);
 }
 
-/** Notion's `data-grid-date` is UTC midnight of the calendar date shown in the column. */
-export const gridDateToIso = (epochMs: number | string): string => new Date(Number(epochMs)).toISOString().slice(0, 10);
+const HOUR_MS = 3_600_000;
+const DAY_MS = 24 * HOUR_MS;
+
+/**
+ * Calendar date (YYYY-MM-DD) of a column. Notion's `data-grid-date` is *local midnight in the calendar's
+ * time zone*, not UTC midnight (they only coincide on GMT; in Amsterdam Friday is stamped Thu 23:00Z).
+ * If the stamp is exactly midnight in `tz` (the usual case: calendar zone = system zone) that's exact;
+ * otherwise fall back to the UTC date at stamp + 12h, which is right for any zone from UTC-11 to UTC+12.
+ */
+export function gridDateToIso(epochMs: number | string, tz = Intl.DateTimeFormat().resolvedOptions().timeZone): string {
+  const ms = Number(epochMs);
+  const wall = ms + tzOffsetMs(ms, tz);
+  if (wall % DAY_MS === 0) return new Date(wall).toISOString().slice(0, 10);
+  return new Date(ms + 12 * HOUR_MS).toISOString().slice(0, 10);
+}

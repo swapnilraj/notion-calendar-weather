@@ -7,7 +7,7 @@ import { luminance, tintFor } from './tint.ts';
 import type { Theme } from './tint.ts';
 import { gridDateToIso } from './time.ts';
 
-/** Notion week/day view: one of these per day, `data-grid-date` = UTC midnight of that date. */
+/** Notion week/day view: one of these per day, `data-grid-date` = local midnight of that date in the calendar time zone (see gridDateToIso). */
 export const COLUMN_SELECTOR = '[data-grid-container][data-grid-date]';
 const APPLIED_ATTR = 'data-ncw-key';
 

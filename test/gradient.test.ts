@@ -42,7 +42,16 @@ test('luminance distinguishes dark and light backgrounds', () => {
 });
 
 test('grid date and timezone helpers', () => {
-  assert.equal(gridDateToIso(Date.UTC(2026, 10, 17)), '2026-11-17');
+  assert.equal(gridDateToIso(Date.UTC(2026, 10, 17), 'Europe/London'), '2026-11-17');
+  // Notion stamps columns with local midnight of the calendar's zone, which is not UTC midnight
+  assert.equal(gridDateToIso(Date.UTC(2026, 10, 19, 23), 'Europe/Amsterdam'), '2026-11-20');
+  assert.equal(gridDateToIso(Date.UTC(2026, 6, 16, 23), 'Europe/London'), '2026-07-17'); // BST
+  assert.equal(gridDateToIso(Date.UTC(2026, 10, 19, 16), 'Asia/Singapore'), '2026-11-20');
+  assert.equal(gridDateToIso(Date.UTC(2026, 10, 20, 5), 'America/New_York'), '2026-11-20');
+  assert.equal(gridDateToIso(Date.UTC(2026, 10, 19, 11), 'Pacific/Auckland'), '2026-11-20'); // UTC+13
+  // calendar zone differs from the system zone: nearest-noon fallback still finds the right date
+  assert.equal(gridDateToIso(Date.UTC(2026, 10, 19, 23), 'Europe/London'), '2026-11-20');
+  assert.equal(gridDateToIso(Date.UTC(2026, 10, 20, 5), 'Europe/Amsterdam'), '2026-11-20');
   // London is UTC+0 in November, UTC+1 in summer; Singapore is always UTC+8
   assert.equal(zonedToEpochMs('2026-11-17', 9, 'Europe/London'), Date.UTC(2026, 10, 17, 9));
   assert.equal(zonedToEpochMs('2026-07-17', 9, 'Europe/London'), Date.UTC(2026, 6, 17, 8));
